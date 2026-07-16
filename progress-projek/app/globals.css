@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #F2F2F7;
+  --surface: #FFFFFF;
+  --surface-secondary: #EFEFF4;
+  --foreground: #1C1C1E;
+  --muted: #8E8E93;
+  --border: #E5E5EA;
+  --primary: #0048CF;
+  --primary-foreground: #FFFFFF;
+  --accent: #0048CF;
+  --accent-foreground: #FFFFFF;
+  --primary-gradient: linear-gradient(135deg, #0048CF 0%, #041233 100%);
+
+   --success: #1ba908;
+  --warning: #fa5c00;
+  --danger: #fc0d00;
+
+  --radius: 1.5rem;
+  --tab-bar-height: 3.75rem;
+}
+
+.dark {
+  --background: #000000;
+  --surface: #1C1C1E;
+  --surface-secondary: #2C2C2E;
+  --foreground: #FFFFFF;
+  --muted: #8E8E93;
+  --border: #38383A;
+
+  --primary: #2E63E0;
+  --primary-foreground: #FFFFFF;
+  --accent: #2E63E0;
+  --accent-foreground: #FFFFFF;
+
+    --success: #0fba00;
+  --warning: #c73d13;
+  --danger: #e54f0f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-inter);
+  --font-mono: var(--font-inter);
+
+  --radius-card: var(--radius);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter),
+    "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.011em;
+}
+
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.ios-large-title {
+  font-size: 2.125rem;
+  line-height: 2.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ios-navbar-blur {
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  background: color-mix(in srgb, var(--background) 72%, transparent);
+}
+
+.ios-tabbar-blur {
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.ios-press {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease;
+}
+.ios-press:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+@supports (padding: max(0px)) {
+  .safe-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .pb-tabbar-safe {
+    padding-bottom: calc(var(--tab-bar-height) + max(0.5rem, env(safe-area-inset-bottom)));
+  }
+}
