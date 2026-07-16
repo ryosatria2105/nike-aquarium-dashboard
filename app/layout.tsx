@@ -10,8 +10,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Omzet Nike Aquarium",
-  description: "Monitoring omzet harian toko — input, riwayat, dan laporan realtime.",
+  title: "Dashboard Laporan Toko",
+  description:
+    "Kelola laporan penjualan, pantau aktivitas shift, dan analisis performa toko dalam satu aplikasi.",
+
+  openGraph: {
+    title: "Dashboard Laporan Toko",
+    description:
+      "Kelola laporan penjualan, pantau aktivitas shift, dan analisis performa toko dalam satu aplikasi.",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary",
+    title: "Dashboard Laporan Toko",
+    description:
+      "Kelola laporan penjualan, pantau aktivitas shift, dan analisis performa toko dalam satu aplikasi.",
+  },
 };
 
 export const viewport: Viewport = {
