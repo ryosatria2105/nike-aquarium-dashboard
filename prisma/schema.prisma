@@ -1,0 +1,122 @@
+// Skema database Aplikasi Monitoring Omzet Toko
+// Lihat dokumen kesepakatan: prompt-chatgpt-aplikasi-omzet.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Shift {
+  pagi
+  siang
+}
+
+enum AuditAction {
+  created
+  updated
+  deleted
+}
+
+model OmzetEntry {
+  id        String   @id @default(uuid())
+
+  tanggal   DateTime @db.Date
+  shift     Shift
+
+  // Total omzet dari mesin kasir — ini yang dipakai sebagai "Omzet" resmi
+  // di seluruh dashboard & statistik.
+  nominalMesin  Decimal @map("nominal_mesin") @db.Decimal(15, 2)
+
+  // Total uang tunai fisik hasil hitung di laci — info pendukung,
+  // tidak dipakai sebagai angka omzet utama.
+  nominalTunai  Decimal @map("nominal_tunai") @db.Decimal(15, 2)
+
+  // Bukti foto struk / laporan mesin kasir (wajib diisi di level aplikasi).
+fotoStrukUrl  String  @map("foto_struk_url")
+  fotoStruk2Url String? @map("foto_struk2_url")
+
+  // Free text, bukan relasi ke akun — aplikasi ini tidak memakai sistem login.
+  namaPegawai   String  @map("nama_pegawai")
+
+  catatan       String?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Soft delete: data tidak pernah dihapus permanen dari database.
+  deletedAt DateTime? @map("deleted_at")
+
+  auditLogs OmzetAuditLog[]
+
+  // Unique constraint parsial: 1 kombinasi (tanggal, shift) hanya boleh
+  // punya 1 entry AKTIF (belum di-soft-delete). Entry yang sudah dihapus
+  // tidak memblokir kombinasi tanggal+shift yang sama dipakai lagi.
+  //
+  // NOTE untuk implementasi: Prisma tidak mendukung partial unique index
+  // secara native. Buat migration manual tambahan setelah `prisma migrate dev`:
+  //
+  //   CREATE UNIQUE INDEX omzet_entries_tanggal_shift_active_unique
+  //   ON omzet_entries (tanggal, shift)
+  //   WHERE deleted_at IS NULL;
+  //
+  // Jangan hanya mengandalkan @@unique di bawah ini saja, karena itu akan
+  // memblokir kombinasi tanggal+shift yang sama meski entry lama sudah
+  // di-soft-delete. @@index di bawah dipakai untuk query performa saja.
+  @@index([tanggal])
+  @@index([shift])
+  @@index([deletedAt])
+  @@map("omzet_entries")
+}
+
+model OmzetAuditLog {
+  id        String      @id @default(uuid())
+
+  entryId   String      @map("entry_id")
+  entry     OmzetEntry  @relation(fields: [entryId], references: [id])
+
+  action    AuditAction
+
+  // Nama yang diketik user saat melakukan aksi (bukan akun, karena tanpa login).
+  changedBy String      @map("changed_by")
+
+  // Snapshot sebelum perubahan. Null jika action == created.
+  oldValue  Json?       @map("old_value")
+
+  // Snapshot sesudah perubahan. Null jika action == deleted.
+  newValue  Json?       @map("new_value")
+
+  changedAt DateTime    @default(now()) @map("changed_at")
+
+  @@index([entryId])
+  @@map("omzet_audit_log")
+}
+
+// Tabel single-row untuk menyimpan konfigurasi aplikasi, saat ini cuma
+// dipakai untuk PIN gate halaman laporan (/dashboard, /statistik).
+//
+// PIN disimpan sebagai HASH (bcrypt), bukan plaintext. PIN diatur MURNI
+// lewat UI (halaman /masuk otomatis menampilkan form "Atur PIN Pertama Kali"
+// selama tabel ini masih kosong) — tidak ada environment variable untuk PIN.
+//
+// CATATAN KEAMANAN: karena PIN pendek (4-6 digit, ruang kombinasi kecil),
+// hashing di sini adalah best-practice standar, BUKAN proteksi kuat terhadap
+// brute-force jika database sendiri bocor. Pertahanan utama tetap menjaga
+// kredensial akses Supabase, bukan mengandalkan kekuatan hash PIN.
+model AppSettings {
+  id      Int    @id @default(1) // dipaksa selalu 1 baris
+  pinHash String @map("pin_hash")
+
+  // Rate-limiting percobaan PIN. Disimpan di DB (bukan in-memory) karena
+  // aplikasi di-deploy di lingkungan serverless (Vercel) — in-memory counter
+  // tidak reliable karena tiap request bisa kena instance server yang berbeda.
+  failedAttempts Int       @default(0) @map("failed_attempts")
+  lockedUntil    DateTime? @map("locked_until")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("app_settings")
+}
