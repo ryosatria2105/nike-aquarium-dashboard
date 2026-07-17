@@ -48,10 +48,8 @@ function MasukForm() {
           return;
         }
 
-        
-       window.localStorage.setItem("omzet:mode", "owner");
+        window.localStorage.setItem("omzet:mode", "owner");
         router.replace(next);
-        router.refresh();
       } catch {
         setError("Terjadi kesalahan jaringan. Coba lagi.");
         setPin("");
@@ -80,9 +78,8 @@ function MasukForm() {
           setLoading(false);
           return;
         }
-       window.localStorage.setItem("omzet:mode", "owner");
+        window.localStorage.setItem("omzet:mode", "owner");
         router.replace(next);
-        router.refresh();
       } catch {
         setError("Terjadi kesalahan jaringan. Coba lagi.");
         setPin("");

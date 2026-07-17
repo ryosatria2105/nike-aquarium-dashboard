@@ -11,7 +11,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const pin = body?.pin;
 
-if (typeof pin !== "string" || !/^\d{4}$/.test(pin)) {    return NextResponse.json(
+  if (typeof pin !== "string" || !/^\d{4}$/.test(pin)) {
+    return NextResponse.json(
       { error: "PIN harus berupa 4-6 digit angka." },
       { status: 400 }
     );
@@ -32,7 +33,7 @@ if (typeof pin !== "string" || !/^\d{4}$/.test(pin)) {    return NextResponse.js
   const response = NextResponse.json({ success: true });
   response.cookies.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: SESSION_COOKIE_MAX_AGE,
     path: "/",

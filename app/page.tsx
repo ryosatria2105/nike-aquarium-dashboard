@@ -20,7 +20,7 @@ export default function Home() {
 
       <div className="flex flex-col gap-3">
         <Link
-          href="/dashboard"
+          href="/masuk?next=/dashboard"
           onClick={() => window.localStorage.setItem("omzet:mode", "owner")}
           className="ios-press flex flex-col gap-4 rounded-card border border-border bg-surface p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.12)]"
         >
