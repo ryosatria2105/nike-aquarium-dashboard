@@ -64,12 +64,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  await prisma.appSettings.update({
-    where: { id: 1 },
-    data: { failedAttempts: 0, lockedUntil: null },
-  });
+  // Skip write kalau memang gak ada yang perlu direset (kasus paling umum:
+  // PIN benar di percobaan pertama) — 1 query DB lebih sedikit = lebih cepat.
+  const needsReset = settings.failedAttempts !== 0 || settings.lockedUntil !== null;
+  const resetPromise = needsReset
+    ? prisma.appSettings.update({
+        where: { id: 1 },
+        data: { failedAttempts: 0, lockedUntil: null },
+      })
+    : Promise.resolve();
 
-  const token = await createSessionToken();
+  // Hashing token & reset attempt dijalankan bersamaan (bukan berurutan)
+  // karena keduanya independen — nyingkat waktu tunggu total.
+  const [token] = await Promise.all([createSessionToken(), resetPromise]);
   const response = NextResponse.json({ success: true });
 
   response.cookies.set(SESSION_COOKIE_NAME, token, {

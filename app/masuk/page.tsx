@@ -154,9 +154,15 @@ function MasukForm() {
         <h1 className="text-[20px] font-semibold text-foreground">{title}</h1>
         <p className="mt-1 mb-10 text-center text-[14px] text-muted">{subtitle}</p>
 
-        <PinPad value={pin} onChange={setPin} error={!!error} />
+        <PinPad value={pin} onChange={setPin} error={!!error} disabled={loading} />
 
-        <p className="mt-8 h-5 text-center text-[13px] text-danger">{error}</p>
+        <p className="mt-8 h-5 text-center text-[13px] text-danger">
+          {loading && !error ? (
+            <span className="text-muted">Memverifikasi...</span>
+          ) : (
+            error
+          )}
+        </p>
       </div>
     </div>
   );
