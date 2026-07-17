@@ -2,7 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, FilePlus2, FilePenLine, FileX2, X, CheckCheck, Trash2 } from "lucide-react";
+import {
+  Bell,
+  FilePlus2,
+  FilePenLine,
+  FileX2,
+  X,
+  CheckCheck,
+  Trash2,
+  ChevronRight,
+} from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 
@@ -52,12 +61,21 @@ function writeDismissed(ids: Set<string>) {
   window.localStorage.setItem(DISMISSED_KEY, JSON.stringify(Array.from(ids)));
 }
 
+function readLastSeenTime(): number {
+  const raw = window.localStorage.getItem(LAST_SEEN_KEY);
+  return raw ? new Date(raw).getTime() : 0;
+}
+
 export function NotificationBell() {
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [logs, setLogs] = useState<AuditLogItem[] | null>(null);
-  const [unread, setUnread] = useState(0);
+  // lastSeenTime disimpan sebagai state (bukan dibaca ulang dari
+  // localStorage tiap render) supaya status "belum dibaca" tetap stabil
+  // selama panel terbuka — baru diperbarui saat panel ditutup, jadi user
+  // sempat lihat mana yang baru sebelum semuanya dianggap terbaca.
+  const [lastSeenTime, setLastSeenTime] = useState(0);
 
   function loadLogs() {
     fetch("/api/audit-log?take=30")
@@ -67,37 +85,53 @@ export function NotificationBell() {
         const dismissed = readDismissed();
         const visible = all.filter((l) => !dismissed.has(l.id));
         setLogs(visible);
-
-        const lastSeen = window.localStorage.getItem(LAST_SEEN_KEY);
-        const lastSeenTime = lastSeen ? new Date(lastSeen).getTime() : 0;
-        setUnread(visible.filter((l) => new Date(l.changedAt).getTime() > lastSeenTime).length);
       })
       .catch(() => setLogs([]));
   }
 
   useEffect(() => {
+    setLastSeenTime(readLastSeenTime());
     loadLogs();
   }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setOpen(false);
+        closePanel();
       }
     }
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  const unreadCount = logs
+    ? logs.filter((l) => new Date(l.changedAt).getTime() > lastSeenTime).length
+    : 0;
+
   function handleToggle() {
-    const next = !open;
-    setOpen(next);
-    if (next) markAllRead();
+    if (open) {
+      closePanel();
+    } else {
+      setOpen(true);
+      loadLogs();
+    }
+  }
+
+  // Status "dibaca" baru diperbarui saat panel ditutup — supaya selama
+  // panel terbuka, latar abu-abu (belum dibaca) masih kelihatan dulu,
+  // baru berubah putih polos (terbaca) setelah panel ditutup.
+  function closePanel() {
+    setOpen(false);
+    const now = new Date().toISOString();
+    window.localStorage.setItem(LAST_SEEN_KEY, now);
+    setLastSeenTime(new Date(now).getTime());
   }
 
   function markAllRead() {
-    window.localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString());
-    setUnread(0);
+    const now = new Date().toISOString();
+    window.localStorage.setItem(LAST_SEEN_KEY, now);
+    setLastSeenTime(new Date(now).getTime());
   }
 
   function dismissOne(id: string) {
@@ -113,7 +147,12 @@ export function NotificationBell() {
     logs.forEach((l) => dismissed.add(l.id));
     writeDismissed(dismissed);
     setLogs([]);
-    setUnread(0);
+  }
+
+  function handleViewEntry(log: AuditLogItem) {
+    if (log.action === "deleted") return;
+    setOpen(false);
+    router.push(`/riwayat/${log.entryId}`);
   }
 
   return (
@@ -125,9 +164,9 @@ export function NotificationBell() {
         className="ios-press relative flex h-10 w-10 items-center justify-center rounded-full bg-surface text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.12)]"
       >
         <Bell className="h-5 w-5" strokeWidth={2} />
-        {unread > 0 && (
+        {unreadCount > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white">
-            {unread > 9 ? "9+" : unread}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
@@ -137,16 +176,18 @@ export function NotificationBell() {
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="text-[14px] font-semibold text-foreground">Aktivitas Terbaru</p>
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={markAllRead}
-                aria-label="Tandai semua dibaca"
-                title="Tandai semua dibaca"
-                className="ios-press flex items-center gap-1 text-[12px] font-medium text-primary"
-              >
-                <CheckCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
-                Baca semua
-              </button>
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={markAllRead}
+                  aria-label="Tandai semua dibaca"
+                  title="Tandai semua dibaca"
+                  className="ios-press flex items-center gap-1 text-[12px] font-medium text-primary"
+                >
+                  <CheckCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  Baca semua
+                </button>
+              )}
               {logs && logs.length > 0 && (
                 <button
                   type="button"
@@ -156,13 +197,13 @@ export function NotificationBell() {
                   className="ios-press flex items-center gap-1 text-[12px] font-medium text-danger"
                 >
                   <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  Hapus
+                  Hapus semua
                 </button>
               )}
             </div>
           </div>
 
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {logs === null && (
               <div className="px-4 py-6 text-center text-[13px] text-muted">Memuat…</div>
             )}
@@ -173,45 +214,63 @@ export function NotificationBell() {
             )}
             {logs?.map((log) => {
               const Icon = ACTION_ICON[log.action];
+              const isDeleted = log.action === "deleted";
+              const isUnread = new Date(log.changedAt).getTime() > lastSeenTime;
+
+              const rowContent = (
+                <>
+                  <span
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white"
+                    style={{ background: ACTION_COLOR[log.action] }}
+                  >
+                    <Icon className="h-5 w-5" strokeWidth={2} />
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="flex items-center gap-1.5 text-[14px] font-semibold text-foreground">
+                      {isUnread && (
+                        <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden="true" />
+                      )}
+                      {log.changedBy}
+                    </p>
+                    <p className="mt-0.5 text-[13px] leading-snug text-foreground/80">
+                      {ACTION_LABEL[log.action]}
+                    </p>
+                    <div className="mt-1.5 flex items-center justify-between gap-2">
+                      <p className="text-[11.5px] text-muted">
+                        {log.shift && (log.shift === "pagi" ? "Shift Pagi" : "Shift Siang")}
+                        {log.shift && " • "}
+                        {format(parseISO(log.changedAt), "d MMM yyyy, HH:mm", { locale: idLocale })}
+                      </p>
+                      {!isDeleted && (
+                        <span className="ios-press flex shrink-0 items-center gap-0.5 text-[12px] font-medium text-primary">
+                          Lihat detail
+                          <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+
               return (
                 <div
                   key={log.id}
-                  className="group flex w-full items-start gap-3 border-b border-border px-4 py-3 last:border-b-0"
+                  className={`group flex w-full items-start gap-3 border-b border-border px-4 py-3.5 last:border-b-0 ${
+                    isUnread ? "bg-surface-secondary" : "bg-surface"
+                  }`}
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpen(false);
-                      if (log.action !== "deleted") router.push(`/riwayat/${log.entryId}`);
-                    }}
-                    className="ios-press flex flex-1 items-start gap-3 text-left"
-                  >
-                    <span
-                      className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white"
-                      style={{ background: ACTION_COLOR[log.action] }}
+                  {isDeleted ? (
+                    <div className="flex flex-1 items-start gap-3 text-left">{rowContent}</div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleViewEntry(log)}
+                      className="ios-press flex flex-1 items-start gap-3 text-left"
                     >
-                      <Icon className="h-4 w-4" strokeWidth={2} />
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-[13px] leading-snug text-foreground">
-                        <span className="font-semibold">{log.changedBy}</span>{" "}
-                        {ACTION_LABEL[log.action]}
-                        {log.shift && (
-                          <span className="text-muted">
-                            {" "}
-                            ({log.shift === "pagi" ? "Pagi" : "Siang"}
-                            {log.tanggal
-                              ? `, ${format(parseISO(log.tanggal), "d MMM", { locale: idLocale })}`
-                              : ""}
-                            )
-                          </span>
-                        )}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-muted">
-                        {format(parseISO(log.changedAt), "d MMM yyyy, HH:mm", { locale: idLocale })}
-                      </p>
-                    </div>
-                  </button>
+                      {rowContent}
+                    </button>
+                  )}
 
                   <button
                     type="button"
