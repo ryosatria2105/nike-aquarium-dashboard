@@ -25,19 +25,19 @@ export function PinPad({ length = 4, value, onChange, error, disabled }: PinPadP
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "backspace"];
 
   return (
-    <div className={`flex flex-col items-center gap-10 transition-opacity ${disabled ? "opacity-40" : "opacity-100"}`}>
-      <div className="flex gap-4">
+    <div className={`flex flex-col items-center gap-12 transition-opacity ${disabled ? "opacity-40" : "opacity-100"}`}>
+      <div className="flex gap-5">
         {Array.from({ length }).map((_, i) => (
           <span
             key={i}
-            className={`h-3 w-3 rounded-full transition-colors ${
+            className={`h-4 w-4 rounded-full transition-colors ${
               i < value.length ? (error ? "bg-danger" : "bg-primary") : "bg-border"
             }`}
           />
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-5">
         {keys.map((k, i) => {
           if (k === "") return <div key={i} />;
           if (k === "backspace") {
@@ -48,9 +48,9 @@ export function PinPad({ length = 4, value, onChange, error, disabled }: PinPadP
                 onClick={handleBackspace}
                 disabled={disabled}
                 aria-label="Hapus"
-                className="ios-press flex h-16 w-16 items-center justify-center rounded-full text-foreground disabled:pointer-events-none"
+                className="ios-press flex h-[76px] w-[76px] items-center justify-center rounded-full text-foreground disabled:pointer-events-none"
               >
-                <Delete className="h-5 w-5" />
+                <Delete className="h-7 w-7" />
               </button>
             );
           }
@@ -60,7 +60,7 @@ export function PinPad({ length = 4, value, onChange, error, disabled }: PinPadP
               type="button"
               onClick={() => handleKeyPress(k)}
               disabled={disabled}
-              className="ios-press flex h-16 w-16 items-center justify-center rounded-full bg-surface-secondary text-[26px] font-medium text-foreground disabled:pointer-events-none"
+              className="ios-press flex h-[76px] w-[76px] items-center justify-center rounded-full bg-surface-secondary text-[32px] font-medium text-foreground disabled:pointer-events-none"
             >
               {k}
             </button>
