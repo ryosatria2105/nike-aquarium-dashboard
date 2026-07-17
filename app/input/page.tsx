@@ -9,6 +9,8 @@ import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { Card } from "@/components/ui/Card";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useToast } from "@/components/ui/Toast";
+import { getBackHref } from "@/lib/nav";
+import { useAppMode } from "@/lib/useAppMode";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
@@ -40,6 +42,7 @@ interface PhotoSlot {
 
 export default function InputOmzetPage() {
   const router = useRouter();
+  const mode = useAppMode();
   const toast = useToast();
   const fileInputRefs = {
     foto1: useRef<HTMLInputElement>(null),
@@ -228,8 +231,8 @@ export default function InputOmzetPage() {
       <div className="mb-1 flex items-center gap-3">
         <button
           type="button"
-          onClick={() => router.push("/riwayat")}
-          aria-label="Kembali ke Riwayat"
+          onClick={() => router.push(getBackHref(mode, "input"))}
+          aria-label="Kembali"
           className="ios-press flex h-9 w-9 shrink-0 items-center justify-center text-foreground"
         >
           <ArrowLeft className="h-5 w-5" />

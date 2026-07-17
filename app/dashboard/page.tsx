@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import {
+  ArrowLeft,
   CalendarDays,
   TrendingUp,
   Wallet,
@@ -20,6 +22,8 @@ import { DonutChart } from "@/components/ui/DonutChart";
 import { MonthDropdown } from "@/components/ui/MonthDropdown";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { formatRupiah } from "@/lib/format";
+import { getBackHref } from "@/lib/nav";
+import { useAppMode } from "@/lib/useAppMode";
 
 interface DashboardData {
   month: string;
@@ -46,6 +50,8 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const mode = useAppMode();
   const [month, setMonth] = useState<string | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -113,7 +119,17 @@ export default function DashboardPage() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-8 pb-6 sm:pt-12">
       {/* App bar */}
       <div className="flex items-center justify-between">
-        <h1 className="ios-large-title text-foreground">Dashboard</h1>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.push(getBackHref(mode, "dashboard"))}
+            aria-label="Kembali ke Beranda"
+            className="ios-press flex h-9 w-9 shrink-0 items-center justify-center text-foreground"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="ios-large-title text-foreground">Dashboard</h1>
+        </div>
         <NotificationBell />
       </div>
 
@@ -165,34 +181,32 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI cards */}
-<div className="grid grid-cols-2 auto-rows-fr gap-3">
-
-
-<StatCard
-  label="Omzet Hari Ini"
-  value={formatRupiah(data.todayTotal)}
-  icon={<CalendarDays className="h-4 w-4" />}
-  accent
-/>
-<StatCard
-  label="Omzet Minggu Ini"
-  value={formatRupiah(data.weekTotal)}
-  icon={<TrendingUp className="h-4 w-4" />}
-/>
-<StatCard
-  label="Progress Hari Ini"
-  value={`${progressCount} / 2 Shift`}
-  icon={<CircleCheck className="h-4 w-4" />}
-  tone="success"
-  sub={progressLabel}
-  subColor={progressCount === 2 ? "foreground" : "muted"}
-/>
-<StatCard
-  label="Total Omzet"
-  value={formatRupiah(data.allTimeTotal)}
-  icon={<Wallet className="h-4 w-4" />}
-  sub="Total sepanjang waktu"
-/>
+      <div className="grid grid-cols-2 auto-rows-fr gap-3">
+        <StatCard
+          label="Omzet Hari Ini"
+          value={formatRupiah(data.todayTotal)}
+          icon={<CalendarDays className="h-4 w-4" />}
+          accent
+        />
+        <StatCard
+          label="Omzet Minggu Ini"
+          value={formatRupiah(data.weekTotal)}
+          icon={<TrendingUp className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Progress Hari Ini"
+          value={`${progressCount} / 2 Shift`}
+          icon={<CircleCheck className="h-4 w-4" />}
+          tone="success"
+          sub={progressLabel}
+          subColor={progressCount === 2 ? "foreground" : "muted"}
+        />
+        <StatCard
+          label="Total Omzet"
+          value={formatRupiah(data.allTimeTotal)}
+          icon={<Wallet className="h-4 w-4" />}
+          sub="Total sepanjang waktu"
+        />
       </div>
 
       {/* Distribusi Penjualan */}

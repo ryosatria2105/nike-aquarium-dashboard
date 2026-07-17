@@ -45,7 +45,7 @@ export default function Home() {
         </Link>
 
         <Link
-          href="/input"
+          href="/riwayat"
           onClick={() => window.localStorage.setItem("omzet:mode", "pegawai")}
           className="ios-press flex flex-col gap-4 rounded-card border border-border bg-surface p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.12)]"
         >

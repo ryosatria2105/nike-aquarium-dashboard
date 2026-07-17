@@ -8,6 +8,8 @@ import { id as idLocale } from "date-fns/locale";
 import { ArrowLeft, ArrowUpDown, ChevronRight } from "lucide-react";
 import { ShiftBadge } from "@/components/ui/ShiftBadge";
 import { formatRupiah } from "@/lib/format";
+import { getBackHref } from "@/lib/nav";
+import { useAppMode } from "@/lib/useAppMode";
 
 type Shift = "pagi" | "siang";
 type ShiftFilter = "semua" | Shift;
@@ -37,6 +39,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 export default function RiwayatPage() {
   const router = useRouter();
+  const mode = useAppMode();
   const [entries, setEntries] = useState<OmzetEntry[] | null>(null);
   const [filter, setFilter] = useState<ShiftFilter>("semua");
   const [sort, setSort] = useState<SortOption>("tanggal_desc");
@@ -66,8 +69,8 @@ export default function RiwayatPage() {
       <div className="mb-4 flex items-center gap-3">
         <button
           type="button"
-          onClick={() => router.push("/")}
-          aria-label="Kembali ke Beranda"
+          onClick={() => router.push(getBackHref(mode, "riwayat"))}
+          aria-label="Kembali"
           className="ios-press flex h-9 w-9 shrink-0 items-center justify-center text-foreground"
         >
           <ArrowLeft className="h-5 w-5" />

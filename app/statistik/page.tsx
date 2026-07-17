@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   LineChart,
   Line,
@@ -13,7 +14,7 @@ import {
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { TrendingUp, Trophy, TrendingDown, Rocket, ChevronRight, Maximize2 } from "lucide-react";
+import { ArrowLeft, TrendingUp, Trophy, TrendingDown, Rocket, ChevronRight, Maximize2 } from "lucide-react";
 import { ChartModal } from "@/components/ui/ChartModal";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { DonutChart } from "@/components/ui/DonutChart";
@@ -56,6 +57,7 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: { value
 }
 
 export default function StatistikPage() {
+  const router = useRouter();
   const [month, setMonth] = useState<string | null>(null);
   const [data, setData] = useState<StatistikData | null>(null);
   const [topMode, setTopMode] = useState<"tertinggi" | "terendah">("tertinggi");
@@ -106,7 +108,17 @@ export default function StatistikPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-8 pb-6 sm:pt-12">
       <div className="flex items-center justify-between">
-        <h1 className="ios-large-title text-foreground">Statistik</h1>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            aria-label="Kembali ke Dashboard"
+            className="ios-press flex h-9 w-9 shrink-0 items-center justify-center text-foreground"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="ios-large-title text-foreground">Statistik</h1>
+        </div>
         <MonthDropdown value={data.month} options={data.availableMonths} onChange={setMonth} />
       </div>
 
