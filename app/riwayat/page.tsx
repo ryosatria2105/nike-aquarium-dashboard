@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -158,9 +159,9 @@ export default function RiwayatPage() {
               className="h-14 w-14 shrink-0 rounded-xl object-cover"
             />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[15px] font-semibold text-foreground">
-                  {format(parseISO(entry.tanggal), "d MMM yyyy", { locale: idLocale })}
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                <span className="text-[14px] font-semibold text-foreground">
+                  {format(parseISO(entry.tanggal), "EEEE, d MMMM yyyy", { locale: idLocale })}
                 </span>
                 <ShiftBadge shift={entry.shift} />
               </div>

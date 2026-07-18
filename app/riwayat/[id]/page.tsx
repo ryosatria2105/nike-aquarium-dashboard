@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { ArrowLeft, Pencil, Camera, X, Trash2, Sunrise, Sun } from "lucide-react";import { Button } from "@/components/ui/Button";
+import { ArrowLeft, Pencil, Camera, X, Trash2, Sunrise, Sun } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
@@ -176,9 +177,9 @@ export default function DetailRiwayatPage() {
 
       {mode === "view" ? (
         <div className="flex flex-col gap-5">
-          <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-bold text-foreground">
-              {format(parseISO(entry.tanggal), "d MMMM yyyy", { locale: idLocale })}
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-[20px] font-bold text-foreground">
+              {format(parseISO(entry.tanggal), "EEEE, d MMMM yyyy", { locale: idLocale })}
             </h1>
             <ShiftBadge shift={entry.shift} />
           </div>
@@ -223,7 +224,9 @@ export default function DetailRiwayatPage() {
             {entry.catatan && (
               <>
                 <p className="mt-3 text-[12px] text-muted">Catatan</p>
-                <p className="mt-0.5 text-[14px] text-foreground">{entry.catatan}</p>
+                <p className="mt-0.5 whitespace-pre-wrap text-[14px] text-foreground">
+                  {entry.catatan}
+                </p>
               </>
             )}
           </div>
@@ -254,7 +257,7 @@ export default function DetailRiwayatPage() {
             <SegmentedControl<Shift>
               value={shift}
               onChange={setShift}
-           options={[
+              options={[
                 { value: "pagi", label: "Pagi", icon: <Sunrise className="h-4 w-4" /> },
                 { value: "siang", label: "Siang", icon: <Sun className="h-4 w-4" /> },
               ]}
